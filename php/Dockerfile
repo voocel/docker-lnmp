@@ -84,9 +84,13 @@ RUN set -x \
   && echo "export PATH=/usr/local/php/bin:/usr/local/php/sbin:$PATH" >> ~/.bashrc \
   && source ~/.bashrc \
 
+  # 安装 Composer
+  && cd ~/download \
+  && php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+  && php composer-setup.php --install-dir=/usr/local/sbin --filename=composer \
+  && php -r "unlink('composer-setup.php');" \
 
   # 删除安装文件
-
   && rm -rf ~/download \
   && yum clean all
 
