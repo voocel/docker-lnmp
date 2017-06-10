@@ -1,4 +1,4 @@
-# 拉取 CentOS
+# 拉取 CentOS7
 FROM hub.c.163.com/library/centos:latest
 
 # 维护者
