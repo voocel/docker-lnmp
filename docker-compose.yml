@@ -23,6 +23,9 @@ services:
         # ÈÝÆ÷Ãû³Æ
     container_name: nginx
   php:
+    depends_on:
+      - mysql
+      - redis
     build: ./php
     ports:
       - "9000"
@@ -34,3 +37,27 @@ services:
       - ./nginx/www:/usr/share/nginx/html
     restart: always
     container_name: php
+  # MySQL
+  mysql:
+    image: hub.c.163.com/library/mysql:latest
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/my.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+    restart: always
+    container_name: mysql
+
+  # REDIS
+  redis:
+    build: ./redis
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - ./redis/redis.conf:/usr/local/redis/redis.conf
+      - ./redis/redis.log:/usr/local/redis/redis.log
+    restart: always
+    container_name: redis
+

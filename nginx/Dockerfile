@@ -64,7 +64,8 @@ RUN set -x \
     --with-stream_ssl_module \
   && make \
   && make install \
-  && rm -rf ~/download
+  && rm -rf ~/download \
+  && yum clean all
 CMD ["/usr/sbin/nginx","-g","daemon off;"]
 
 EXPOSE 80 443

@@ -10,7 +10,7 @@ try{
 }
 */
 
-  $con = new mysqli("127.0.0.1","root","root");
+  $con = new mysqli("mysql","root","root");
 
   if($con->connect_error){
     die("fail....".$con->connect_error);

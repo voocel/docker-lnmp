@@ -1,11 +1,11 @@
 # 拉取 CentOS
-FROM daocloud.io/centos:latest
+FROM hub.c.163.com/library/centos:latest
 
 # 维护者
-MAINTAINER leepin <admin@cxsir.com>
+MAINTAINER voocel <voocel@gmail.com>
 
 # 设置 Redis 版本
-ENV REDIS_VERSION 3.2.5
+ENV REDIS_VERSION 3.2.9
 
 # 下载并编译
 RUN set -x \
@@ -17,8 +17,12 @@ RUN set -x \
   && rm -f redis-$REDIS_VERSION.tar.gz \
   && mv redis-$REDIS_VERSION redis \
   && cd redis \
-  && make
+  && make \
+  && make install \
+  && mkdir /usr/local/redis \
+  && cp -rf ./src/redis-cli ./src/redis-server ./redis.conf /usr/local/redis \
+  && yum clean all
 
-CMD ["/opt/redis/src/redis-server","/usr/share/nginx/html/redis.conf"]
+CMD ["usr/local/redis/redis-server","/usr/local/redis/redis.conf"]
 
 EXPOSE 6379
