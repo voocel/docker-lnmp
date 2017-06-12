@@ -1,7 +1,7 @@
 <?php
 /*
 try{
- $con =new PDO("mysql:host=mysql;dbname=test","root","root");
+ $con =new PDO("mysql:host=mysql;dbname=test","root","123456");
  echo"ok...";
 
 }catch(PDOException $e){
@@ -10,7 +10,7 @@ try{
 }
 */
 
-  $con = new mysqli("mysql","root","root");
+  $con = new mysqli("mysql","root","123456");
 
   if($con->connect_error){
     die("fail....".$con->connect_error);

@@ -4,9 +4,9 @@ FROM hub.c.163.com/library/centos:latest
 # 维护者
 MAINTAINER voocel <voocel@gmail.com>
 
-# 设置 PHP 版本
+# 设置 PHP 和redis版本
 ENV PHP_VERSION 7.1.5
-
+ENV REDIS_VERSION 3.1.2
 # 安装依赖
 RUN set -x \
   && yum update -y \
@@ -73,8 +73,9 @@ RUN set -x \
 
   # 安装 Redis 扩展
   && cd ~/download \
-  && git clone -b php7 https://github.com/phpredis/phpredis.git \
-  && cd phpredis \
+  && wget https://github.com/phpredis/phpredis/archive/$REDIS_VERSION.tar.gz \
+  && tar -zxvf $REDIS_VERSION.tar.gz \
+  && cd phpredis-$REDIS_VERSION \
   && /usr/local/php/bin/phpize \
   && ./configure --with-php-config=/usr/local/php/bin/php-config \
   && make \

@@ -13,16 +13,19 @@ RUN set -x \
   && yum install -y wget gcc gcc-c++ make perl tar \
   && cd /opt \
   && wget http://download.redis.io/releases/redis-$REDIS_VERSION.tar.gz \
-  && tar -zxvf redis-$REDIS_VERSION.tar.gz \
+
+  && tar -zxf redis-$REDIS_VERSION.tar.gz -C /usr/local \
   && rm -f redis-$REDIS_VERSION.tar.gz \
+  && cd /usr/local \
   && mv redis-$REDIS_VERSION redis \
-  && cd redis \
+
+  && cd /usr/local/redis \
   && make \
-  && make install \
-  && mkdir /usr/local/redis \
-  && cp -rf ./src/redis-cli ./src/redis-server ./redis.conf /usr/local/redis \
+  && make -C /usr/local/redis/src install \
+  && mkdir /usr/local/redis/data \
+
   && yum clean all
 
-CMD ["usr/local/redis/redis-server","/usr/local/redis/redis.conf"]
+CMD ["usr/local/redis/src/redis-server","/usr/local/redis/redis.conf"]
 
 EXPOSE 6379
