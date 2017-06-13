@@ -1,18 +1,17 @@
 # <center>使用Dockerfile 部署 Lnmp+Redis 环境 </center>
-
+[![GitHub issues](https://img.shields.io/github/issues/voocel/docker-lnmp.svg)](https://github.com/voocel/docker-lnmp/issues)
 ### <font face="黑体">Docker 简介</font>
   Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的 Linux 机器上，也可以实现虚拟化。容器是完全使用沙箱机制，相互之间不会有任何接口。推荐内核版本3.8及以上
 
 ### 为什么使用Docker
 
-<font color=fray>
-1.加速本地的开发和构建流程，容器可以在开发环境构建，然后轻松地提交到测试环境，并最终进入生产环境
 
-2.能够在让独立的服务或应用程序在不同的环境中得到相同的运行结果  
-3.创建隔离的环境来进行测试  
-4.高性能、超大规划的宿主机部署  
-5.从头编译或者扩展现有的OpenShift或Cloud Foundry平台来搭建自己的PaaS环境
-</font>
+1. 加速本地的开发和构建流程，容器可以在开发环境构建，然后轻松地提交到测试环境，并最终进入生产环境
+2. 能够在让独立的服务或应用程序在不同的环境中得到相同的运行结果  
+3. 创建隔离的环境来进行测试  
+4. 高性能、超大规划的宿主机部署  
+5. 从头编译或者扩展现有的OpenShift或Cloud Foundry平台来搭建自己的PaaS环境
+
 
 
 ### 各环境安装Docker
