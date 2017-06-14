@@ -9,9 +9,9 @@ services:
     build: ./nginx
         # 这样使nginx容器把网站文件和目录存放到主机目录中，持久化和方便管理
     volumes:
-      - /docker/nginx/www:/usr/share/nginx/html
-      - /docker/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - /docker/nginx/log/error.log:/var/log/nginx/error.log
+      - ./nginx/www:/usr/share/nginx/html
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/log/error.log:/var/log/nginx/error.log
         # nginx意外退出时自动重启
     restart: always
 
