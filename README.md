@@ -1,5 +1,4 @@
 # <center>使用Dockerfile 部署 Lnmp+Redis 环境 </center>
-[![Build Status](https://travis-ci.org/voocel/docker-lnmp.svg?branch=master)](https://travis-ci.org/voocel/docker-lnmp)
 [![GitHub issues](https://img.shields.io/github/issues/voocel/docker-lnmp.svg)](https://github.com/voocel/docker-lnmp/issues)
 [![GitHub forks](https://img.shields.io/github/forks/voocel/docker-lnmp.svg)](https://github.com/voocel/docker-lnmp/network)
 [![GitHub stars](https://img.shields.io/github/stars/voocel/docker-lnmp.svg)](https://github.com/voocel/docker-lnmp/stargazers)
@@ -29,11 +28,15 @@
 
 ```
 sudo yum update
-sudo yum -y install docker
+sudo yum -y install docker(下载的版本过低，在Ubuntu下可能会出现问题，不推荐)
 或者 curl -sSL https://get.docker.com/ | sh  通过官方脚本获取安装最新版本(推荐)
 #安装程序将docker程序安装到/usr/bin⺫⽬目录下，配置⽂文件安装在/etc/sysconfig/docker。安装好docker之后，可以 将docker加⼊入到启动服务组中 
 sudo systemctl enable docker.service
 #手动启动docker服务器，使⽤用命令 sudo systemctl start docker.service
+
+curl -L https://github.com/docker/compose/releases/download/1.15.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+#安装docker-compose
 ```
 
 目录结构 
@@ -42,7 +45,7 @@ sudo systemctl enable docker.service
 docker_lnmp
 ├── mysql
 │   └── Dockerfile
-	└── my.cnf
+│	└── my.cnf
 ├── nginx
 │   ├── Dockerfile
 │   ├── nginx.conf
@@ -65,12 +68,17 @@ docker_lnmp
     └── redis.conf
 ```
 
-### 建立镜像与容器
-1. 直接使用docker-compose一键制作镜像并运行容器
+### 创建镜像与安装
+**方法一、 直接使用docker-compose一键制作镜像并运行容器（推荐）**
+
     ```
-	# docker-compose up -d
+	git clone https://github.com/voocel/docker-lnmp.git
+	cd docker-lnmp
+	docker-compose up -d
     ```
-2. 逐步build并run
+	然后就可以通过访问127.0.0.1、127.0.0.1/index.php、127.0.0.1/db.php、127.0.0.1/redis.php 测试了
+**方法二、 逐步build并run**
+
     ```
     # build
     docker build -t centos/nginx:v1.11.5 -v /www:/www -v /data:/data  ./nginx
@@ -152,9 +160,26 @@ PID=$(docker inspect --format "{{ .State.Pid }}" container_id)
 * COPY 是复制本地文件，而不会去做文件提取（解压包不会自动解压） 例：COPY conf.d/ /etc/apache2/  将本地conf.d目录中的文件复制到/etc/apache2/目录中
 
 ### docker-compose.yml 语法说明
+* image 指定为镜像名称或镜像ID。如果镜像不存在，Compose将尝试从互联网拉取这个镜像
+* build 指定Dockerfile所在文件夹的路径。Compose将会利用他自动构建这个镜像，然后使用这个镜像
+* command 覆盖容器启动后默认执行的命令
+* links 链接到其他服务容器，使用服务名称(同时作为别名)或服务别名（SERVICE:ALIAS）都可以
+* external_links 链接到docker-compose.yml外部的容器，甚至并非是Compose管理的容器。参数格式和links类似
+* ports 暴露端口信息。宿主机器端口：容器端口（HOST:CONTAINER）格式或者仅仅指定容器的端口（宿主机器将会随机分配端口）都可以(注意：当使用 HOST:CONTAINER 格式来映射端口时，如果你使用的容器端口小于 60 你可能会得到错误得结果，因为 YAML 将会解析 xx:yy 这种数字格式为 60 进制。所以建议采用字符串格式。)
+* expose 暴露端口，与posts不同的是expose只可以暴露端口而不能映射到主机，只供外部服务连接使用；仅可以指定内部端口为参数
+* volumes 设置卷挂载的路径。可以设置宿主机路径:容器路径（host:container）或加上访问模式（host:container:ro）ro就是readonly的意思，只读模式
+* volunes_from 挂载另一个服务或容器的所有数据卷
+* environment 设置环境变量。可以属于数组或字典两种格式。如果只给定变量的名称则会自动加载它在Compose主机上的值，可以用来防止泄露不必要的数据
+* env_file  从文件中获取环境变量，可以为单独的文件路径或列表。如果通过docker-compose -f FILE指定了模板文件，则env_file中路径会基于模板文件路径。如果有变量名称与environment指令冲突，则以后者为准(环境变量文件中每一行都必须有注释，支持#开头的注释行)
+* extends 基于已有的服务进行服务扩展。例如我们已经有了一个webapp服务，模板文件为common.yml。编写一个新的 development.yml 文件，使用 common.yml 中的 webapp 服务进行扩展。后者会自动继承common.yml中的webapp服务及相关的环境变量
+* net 设置网络模式。使用和docker client 的 --net 参数一样的值
+* pid 和宿主机系统共享进程命名空间，打开该选项的容器可以相互通过进程id来访问和操作
+* dns 配置DNS服务器。可以是一个值，也可以是一个列表
+* cap_add，cap_drop 添加或放弃容器的Linux能力（Capability）
+* dns_search 配置DNS搜索域。可以是一个值也可以是一个列表
+* 注意：使用compose对Docker容器进行编排管理时，需要编写docker-compose.yml文件，初次编写时，容易遇到一些比较低级的问题，导致执行docker-compose up时先解析yml文件的错误。比较常见的是yml对缩进的严格要求。yml文件还行后的缩进，不允许使用tab键字符，只能使用空格，而空格的数量也有要求，一般两个空格。
 
-
-### 问题点整理
+## 常见问题处理
 * 注意挂载目录的权限问题，不然容器成功启动几秒后立刻关闭，例：以下/data/run/mysql 目录没权限的情况下就会出现刚才那种情况
 		```
 		docker run --name mysql57 -d -p 3306:3306 -v /data/mysql:/var/lib/mysql -v /data/logs/mysql:/var/log/mysql -v /data/run/mysql:/var/run/mysqld -e MYSQL_ROOT_PASSWORD=123456 -it centos/mysql:v5.7
@@ -219,3 +244,19 @@ PID=$(docker inspect --format "{{ .State.Pid }}" container_id)
 	改为：
 	bind 0.0.0.0
 	```
+* 启动docker web服务时 虚拟机端口转发 外部无法访问 一般出现在yum update的时候（WARNING: IPv4 forwarding is disabled. Networking will not work.）或者宿主机可以访问，但外部无法访问
+```
+vi /etc/sysctl.conf
+或者
+vi /usr/lib/sysctl.d/00-system.conf
+添加如下代码：
+    net.ipv4.ip_forward=1
+
+重启network服务
+systemctl restart network
+
+查看是否修改成功
+sysctl net.ipv4.ip_forward
+
+如果返回为"net.ipv4.ip_forward = 1"则表示成功了
+```
