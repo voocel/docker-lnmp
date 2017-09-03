@@ -77,6 +77,7 @@ docker_lnmp
 	docker-compose up -d
     ```
 	然后就可以通过访问127.0.0.1、127.0.0.1/index.php、127.0.0.1/db.php、127.0.0.1/redis.php 测试了
+	(若想使用https则请修改nginx下的dockerfile，和nginx.conf按提示去掉注释即可，灵需要在ssl文件夹中加入自己的证书文件，本项目自带的是空的，需要自己替换，保持文件名一致)
 **方法二、 逐步build并run**
 
     ```

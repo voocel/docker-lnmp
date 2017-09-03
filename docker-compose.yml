@@ -1,28 +1,28 @@
 version: '2'
-# ¶¨ÒåËÄ¸ö·şÎñnginx,php,mysql,redis
+# å®šä¹‰å››ä¸ªæœåŠ¡nginx,php,mysql,redis
 services:
   nginx:
-    # ÒÀÀµphp·şÎñ£¬ÒâÎ¶×ÅÔÚÆô¶¯nginxÖ®Ç°ÏÈÆô¶¯php
+    # ä¾èµ–phpæœåŠ¡ï¼Œæ„å‘³ç€åœ¨å¯åŠ¨nginxä¹‹å‰å…ˆå¯åŠ¨php
     depends_on:
       - php
-      # nginx¾µÏñµÄÂ·¾¶
+      # nginxé•œåƒçš„è·¯å¾„
     build: ./nginx
-        # ÕâÑùÊ¹nginxÈİÆ÷°ÑÍøÕ¾ÎÄ¼şºÍÄ¿Â¼´æ·Åµ½Ö÷»úÄ¿Â¼ÖĞ£¬³Ö¾Ã»¯ºÍ·½±ã¹ÜÀí
+        # è¿™æ ·ä½¿nginxå®¹å™¨æŠŠç½‘ç«™æ–‡ä»¶å’Œç›®å½•å­˜æ”¾åˆ°ä¸»æœºç›®å½•ä¸­ï¼ŒæŒä¹…åŒ–å’Œæ–¹ä¾¿ç®¡ç†
     volumes:
       - ./nginx/www:/usr/share/nginx/html
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/log/error.log:/var/log/nginx/error.log
-        # nginxÒâÍâÍË³öÊ±×Ô¶¯ÖØÆô
+        # nginxæ„å¤–é€€å‡ºæ—¶è‡ªåŠ¨é‡å¯
     restart: always
 
-        # Ó³Éä80ºÍ443¶Ë¿Ú
+        # æ˜ å°„80å’Œ443ç«¯å£
     ports:
       - "80:80"
       - "443:443"
     networks:
       - frontend
 
-        # ÈİÆ÷Ãû³Æ
+        # å®¹å™¨åç§°
     container_name: nginx
 
   php:

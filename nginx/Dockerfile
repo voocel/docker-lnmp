@@ -1,24 +1,24 @@
-# À­È¡ CentOS
+# æ‹‰å– CentOS
 FROM hub.c.163.com/library/centos:latest
 
-# Î¬»¤Õß
+# ç»´æŠ¤è€…
 MAINTAINER voocel <voocel@gmail.com>
 
-# ÉèÖÃ openssl ºÍ nginx °æ±¾
+# è®¾ç½® openssl å’Œ nginx ç‰ˆæœ¬
 ENV NGINX_VERSION 1.13.0
 
-# °²×°ÒÀÀµ
+# å®‰è£…ä¾èµ–
 RUN set -x \
   && yum update -y \
   && yum install -y wget gcc gcc-c++ make automake autoconf libtool libxml2-devel libxslt-devel perl-devel perl-ExtUtils-Embed pcre-devel perl file tar bzip2-devel bzip2 openssl openssl-devel zlib zlib-devel \
 
-  # ´´½¨ÏÂÔØÄ¿Â¼
+  # åˆ›å»ºä¸‹è½½ç›®å½•
   && mkdir ~/download \
   
-  # ÏÂÔØ openssl
+  # ä¸‹è½½ openssl
   && cd ~/download \
 
-  # ÏÂÔØ nginx
+  # ä¸‹è½½ nginx
   && wget http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz \
   && tar -zxvf nginx-$NGINX_VERSION.tar.gz \
   && cd nginx-$NGINX_VERSION \
@@ -66,6 +66,12 @@ RUN set -x \
   && make install \
   && rm -rf ~/download \
   && yum clean all
+
+# è‹¥è¦ä½¿ç”¨httpsï¼Œè¯·å°†ä»¥ä¸‹ä¸‰ä¸ªæ³¨é‡Šå»æ‰,å¹¶åœ¨sslæ–‡ä»¶å¤¹ä¸­æ·»åŠ ä½ è‡ªå·±ç”³è¯·çš„ä¸¤ä¸ªè¯ä¹¦æ–‡ä»¶
+#  && mkdir -p /etc/nginx/cert
+#COPY ssl/nginx.pem /etc/nginx/cert/nginx.pem
+#COPY ssl/nginx.key /etc/nginx/cert/nginx.key
+
 CMD ["/usr/sbin/nginx","-g","daemon off;"]
 
 EXPOSE 80 443
