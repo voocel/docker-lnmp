@@ -65,7 +65,7 @@ services:
   # REDIS
   redis:
     #build: ./redis
-    mage: yahuiwong/lnmp:redis3.2.9
+    image: yahuiwong/lnmp:redis3.2.9
     ports:
       - "127.0.0.1:6379:6379"
     networks:
