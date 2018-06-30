@@ -13,6 +13,7 @@ services:
       - ./nginx/www:/usr/share/nginx/html
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssh/:/etc/nginx/ssh/
       - ./nginx/log/error.log:/var/log/nginx/error.log
         # nginx意外退出时自动重启
     restart: always
