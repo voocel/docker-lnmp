@@ -15,7 +15,17 @@
 5. 从头编译或者扩展现有的OpenShift或Cloud Foundry平台来搭建自己的PaaS环境
 
 
-### 各环境安装Docker
+## 目录
+* [安装Docker](#安装Docker)
+* [目录结构](#目录结构)
+* [快速使用](#创建镜像与安装)
+* [如何进入容器内部](#如何进入容器内部)
+* [如何安装PHP扩展](#如何安装PHP扩展)
+* [常用命令](#常用命令)
+* [Dockerfile语法](#Dockerfile语法)
+* [常见问题处理](#常见问题处理)
+
+### 安装Docker
 **windows 安装**
 
 [参考](http://www.iganlei.cn/environment-configuration/798.html)
@@ -27,22 +37,24 @@
 **linux**
 
 ```
-sudo yum update
-sudo yum -y install docker(下载的版本过低，在Ubuntu下可能会出现问题，不推荐)
-或者 curl -sSL https://get.docker.com/ | sh  通过官方脚本获取安装最新版本(推荐)
-#安装程序将docker程序安装到/usr/bin⺫⽬目录下，配置⽂文件安装在/etc/sysconfig/docker。安装好docker之后，可以 将docker加⼊入到启动服务组中 
-sudo systemctl enable docker.service
-#手动启动docker服务器，使⽤用命令 sudo systemctl start docker.service
+# 下载安装
+curl -sSL https://get.docker.com/ | sh
 
+# 设置开机自启
+sudo systemctl enable docker.service
+
+sudo service docker start|restart|stop
+
+# 安装docker-compose
 curl -L https://github.com/docker/compose/releases/download/1.15.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
-#安装docker-compose
 ```
 
-目录结构 
+### 目录结构
 
 ```
 docker_lnmp
+├── v2
 ├── mysql
 │   └── Dockerfile
 │	└── my.cnf
@@ -69,34 +81,85 @@ docker_lnmp
 ```
 
 ### 创建镜像与安装
-**方法一、 直接使用docker-compose一键制作镜像并运行容器（推荐）**
+> 直接使用docker-compose一键制作镜像并启动容器
 
-    ```
-	git clone https://github.com/voocel/docker-lnmp.git
-	cd docker-lnmp
-	docker-compose up -d
-    ```
-	然后就可以通过访问127.0.0.1、127.0.0.1/index.php、127.0.0.1/db.php、127.0.0.1/redis.php 测试了
-	(若想使用https则请修改nginx下的dockerfile，和nginx.conf按提示去掉注释即可，灵需要在ssl文件夹中加入自己的证书文件，本项目自带的是空的，需要自己替换，保持文件名一致)
-**方法二、 逐步build并run**
+**版本一**
 
-    ```
-    # build
-    docker build -t centos/nginx:v1.11.5 -v /www:/www -v /data:/data  ./nginx
-    docker build -t centos/mysql:v5.7 -v /data/mysql:/var/lib/mysql -v /data/logs/mysql:/var/log/mysql  ./mysql
-    docker build -t centos/php:v7.0.12 -v /www:/www -v /data:/data  ./php
-    docker build -t centos/redis:v3.2.6 -v /data:/data  ./redis
+*该版本是通过拉取纯净的CentOS镜像，通过Dockerfile相关命令进行源码编译安装各个服务。所以该方式很方便定制自己需要的镜像，但是占用空间大且构建慢。*
 
-    #备注：这里选取了172.172.0.0网段，也可以指定其他任意空闲的网段
-    docker network create --subnet=172.171.0.0/16 docker-at
+```
+git clone https://github.com/voocel/docker-lnmp.git
+cd docker-lnmp
+docker-compose up -d
+```
 
-    # run
-    docker run --name mysql57 --net docker-at --ip 172.171.0.9 -d -p 3306:3306 -v /data/mysql:/var/lib/mysql -v /data/logs/mysql:/var/log/mysql -v /data/run/mysqlmysqld:/var/run/mysqld  -e MYSQL_ROOT_PASSWORD=123456 -it centos/mysql:v5.7
-    docker run --name redis326 --net docker-at --ip 172.171.0.10 -d -p 6379:6379  -v /data:/data -it centos/redis:v3.2.6
-    docker run --name php7 --net docker-at --ip 172.171.0.8 -d -p 9000:9000 -v /www:/www -v /data:/data --link mysql57:mysql57 --link redis326:redis326 -it centos/php:v7.0.12 
-    docker run --name nginx11 --net docker-at --ip 172.171.0.7 -p 80:80 -d -v /www:/www -v /data:/data --link php7:php7 -it centos/nginx:v1.11.5 
-    ```
+**版本二**
+```
+git clone https://github.com/voocel/docker-lnmp.git
+cd docker-lnmp/v2
+docker-compose up -d
+```
+*该版本是通过拉取官方已经制作好的各个服务的镜像，再通过Dockerfile相关命令根据自身需求做相应的调整。所以该方式构建迅速使用方便，因为是基于Alpine Linux所以占用空间很小。*
 
+### 测试
+通过访问127.0.0.1、127.0.0.1/index.php、127.0.0.1/db.php、127.0.0.1/redis.php 即可完成测试
+(若想使用https则请修改nginx下的dockerfile，和nginx.conf按提示去掉注释即可，灵需要在ssl文件夹中加入自己的证书文件，本项目自带的是空的，需要自己替换，保持文件名一致)
+
+
+### 如何进入容器内部
+1. 使用 docker exec
+```
+docker exec -it ngixn /bin/sh
+```
+2. 使用nsenter命令
+```
+# cd /tmp; curl https://www.kernel.org/pub/linux/utils/util-linux/v2.24/util-linux-2.24.tar.gz | tar -zxf-; cd util-linux-2.24;
+# ./configure --without-ncurses
+# make nsenter && sudo cp nsenter /usr/local/bin
+``` 
+为了连接到容器，你还需要找到容器的第一个进程的 PID，可以通过下面的命令获取再执行。
+```
+PID=$(docker inspect --format "{{ .State.Pid }}" container_id)
+# nsenter --target $PID --mount --uts --ipc --net --pid
+```
+
+### 如何安装PHP扩展
+1. 安装PHP官方源码包里的扩展(如：同时安装pdo_mysql pcntl gd三个扩展)
+
+*在php的Dockerfile中加入以下命令*
+```
+RUN apk add libpng-dev \
+    && docker-php-ext-install pdo_mysql pcntl gd \
+```
+*注:因为该镜像缺少gd库所需的libpng-dev包，所以需要先下载这个包*
+
+2. PECL 扩展安装
+```
+# 安装扩展
+RUN pecl install memcached-2.2.0 \
+    # 启用扩展
+    && docker-php-ext-enable memcached \
+```
+
+3. 通过下载扩展源码，编译安装的方式安装
+```
+# 安装Redis和swoole扩展
+RUN cd ~ \
+    && wget https://github.com/phpredis/phpredis/archive/4.2.0.tar.gz \
+    && tar -zxvf 4.2.0.tar.gz \
+    && mkdir -p /usr/src/php/ext \
+    && mv phpredis-4.2.0 /usr/src/php/ext/redis \
+    && docker-php-ext-install redis \
+
+    && apk add libstdc++\
+    && cd ~ \
+    && wget https://github.com/swoole/swoole-src/archive/v4.2.8.tar.gz \
+    && tar -zxvf v4.2.8.tar.gz \
+    && mkdir -p /usr/src/php/ext \
+    && mv swoole-src-4.2.8 /usr/src/php/ext/swoole \
+    && docker-php-ext-install swoole \
+```
+*注:因为该镜像需要先安装swoole依赖的libstdc++，否则安装成功后无法正常加载swoole扩展*
 
 ### 常用命令
 * docker start 容器名（容器ID也可以）
@@ -109,7 +172,8 @@ docker_lnmp
 * docker run --restart=always --name 容器名 -d ubuntu /bin/sh -c "while true;do echo hello world; sleep 1; done" 无论退出代码是什么，docker都会自动重启容器，可以设置 --restart=on-failure:5 自动重启的次数
 * docker inspect 容器名   对容器进行详细的检查，可以加 --format='{(.State.Running)}' 来获取指定的信息
 * docker rm 容器ID  删除容器，注，运行中的容器无法删除
-* docker rm `docker ps -a -q` 这样可以删除所有的容器
+* docker rm $(docker ps -aq) 删除所有容器
+* docker rmi $(docker images -aq) 删除所有镜像
 * docker images 列出镜像
 * docker pull 镜像名:标签 拉镜像
 * docker search  查找docker Hub 上公共的可用镜像 
@@ -126,6 +190,7 @@ docker_lnmp
 * ############################################################
 * docker network create --subnet=172.171.0.0/16 docker-at 选取172.172.0.0网段
 * docker build 就可以加 -ip指定容器ip 172.171.0.10 了
+
 **删除所有容器和镜像的命令**
 
 ```
@@ -133,21 +198,8 @@ docker rm `docker ps -a |awk '{print $1}' | grep [0-9a-z]` 删除停止的容器
 docker rmi $(docker images | awk '/^<none>/ { print $3 }')
 ```
 
-**进入容器的命令**
 
-1. nsenter 命令需要安装
-```
-# cd /tmp; curl https://www.kernel.org/pub/linux/utils/util-linux/v2.24/util-linux-2.24.tar.gz | tar -zxf-; cd util-linux-2.24;
-# ./configure --without-ncurses
-# make nsenter && sudo cp nsenter /usr/local/bin
-``` 
-为了连接到容器，你还需要找到容器的第一个进程的 PID，可以通过下面的命令获取再执行。
-```
-PID=$(docker inspect --format "{{ .State.Pid }}" container_id)
-# nsenter --target $PID --mount --uts --ipc --net --pid
-```
-
-### dockerfile 语法
+### Dockerfile语法
 
 * MAINTAINER  标识镜像的作者和联系方式
 * EXPOSE 可以指定多个EXPOSE向外部公开多个端口，可以帮助多个容器链接
