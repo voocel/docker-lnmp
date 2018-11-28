@@ -29,3 +29,5 @@ RUN cd ~ \
     && docker-php-ext-install swoole \
 
     && docker-php-ext-install pdo_mysql pcntl gd\
+
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \

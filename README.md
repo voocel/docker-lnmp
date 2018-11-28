@@ -1,4 +1,4 @@
-# <center>使用Dockerfile 部署 Lnmp+Redis 环境 </center>
+# <center>使用Dockerfile 部署 LNMP+Redis 环境 </center>
 [![GitHub issues](https://img.shields.io/github/issues/voocel/docker-lnmp.svg)](https://github.com/voocel/docker-lnmp/issues)
 [![GitHub forks](https://img.shields.io/github/forks/voocel/docker-lnmp.svg)](https://github.com/voocel/docker-lnmp/network)
 [![GitHub stars](https://img.shields.io/github/stars/voocel/docker-lnmp.svg)](https://github.com/voocel/docker-lnmp/stargazers)
@@ -19,8 +19,9 @@
 * [安装Docker](#安装Docker)
 * [目录结构](#目录结构)
 * [快速使用](#创建镜像与安装)
-* [如何进入容器内部](#如何进入容器内部)
-* [如何安装PHP扩展](#如何安装PHP扩展)
+* [进入容器内部](#进入容器内部)
+* [安装PHP扩展](#安装PHP扩展)
+* [Composer安装](#Composer安装)
 * [常用命令](#常用命令)
 * [Dockerfile语法](#Dockerfile语法)
 * [常见问题处理](#常见问题处理)
@@ -106,7 +107,7 @@ docker-compose up -d
 (若想使用https则请修改nginx下的dockerfile，和nginx.conf按提示去掉注释即可，灵需要在ssl文件夹中加入自己的证书文件，本项目自带的是空的，需要自己替换，保持文件名一致)
 
 
-### 如何进入容器内部
+### 进入容器内部
 1. 使用 docker exec
 ```
 docker exec -it ngixn /bin/sh
@@ -123,13 +124,13 @@ PID=$(docker inspect --format "{{ .State.Pid }}" container_id)
 # nsenter --target $PID --mount --uts --ipc --net --pid
 ```
 
-### 如何安装PHP扩展
-1. 安装PHP官方源码包里的扩展(如：同时安装pdo_mysql pcntl gd三个扩展)
+### 安装PHP扩展
+1. 安装PHP官方源码包里的扩展(如：同时安装pdo_mysql mysqli pcntl gd四个个扩展)
 
 *在php的Dockerfile中加入以下命令*
 ```
 RUN apk add libpng-dev \
-    && docker-php-ext-install pdo_mysql pcntl gd \
+    && docker-php-ext-install pdo_mysql mysqli pcntl gd \
 ```
 *注:因为该镜像缺少gd库所需的libpng-dev包，所以需要先下载这个包*
 
@@ -160,6 +161,12 @@ RUN cd ~ \
     && docker-php-ext-install swoole \
 ```
 *注:因为该镜像需要先安装swoole依赖的libstdc++，否则安装成功后无法正常加载swoole扩展*
+
+### Composer安装
+在Dockerfile中加入
+```bash
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
+```
 
 ### 常用命令
 * docker start 容器名（容器ID也可以）
@@ -312,4 +319,9 @@ systemctl restart network
 sysctl net.ipv4.ip_forward
 
 如果返回为"net.ipv4.ip_forward = 1"则表示成功了
+```
+* 如果使用最新的MySQL8无法正常连接，由于最新版本的密码加密方式改变，导致无法远程连接。
+```
+# 修改密码加密方式
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
 ```
