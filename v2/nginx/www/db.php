@@ -16,5 +16,5 @@ try{
       die("connect fail".$con->connect_error);
   }else{
       echo "connect success!";
-   }
+  }
 
