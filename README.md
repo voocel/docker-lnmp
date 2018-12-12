@@ -95,10 +95,12 @@ cd docker-lnmp
 docker-compose up -d
 ```
 
-**版本二**
+**版本二(推荐)**
 ```
 git clone https://github.com/voocel/docker-lnmp.git
 cd docker-lnmp/v2
+chmod 777 ./redis/redis.log
+chmod -R 777 ./redis/data
 docker-compose up -d
 ```
 *该版本是通过拉取官方已经制作好的各个服务的镜像，再通过Dockerfile相关命令根据自身需求做相应的调整。所以该方式构建迅速使用方便，因为是基于Alpine Linux所以占用空间很小。*
@@ -171,10 +173,10 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ 
 
 ## 常见问题处理
 * redis启动失败问题
-在v2版本中redis的启动用户为redis不是root,所以在宿主机中挂载的./redis/redis.conf和./redis/data需要有写入权限。
+在v2版本中redis的启动用户为redis不是root,所以在宿主机中挂载的./redis/redis.log和./redis/data需要有写入权限。
 
 	```
-	   chmod 777 ./redis/redis.conf
+	   chmod 777 ./redis/redis.log
 	   chmod 777 ./redis/data
 	```
 

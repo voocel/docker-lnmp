@@ -5,7 +5,7 @@ services:
     depends_on:
       - php
     ports: 
-      - "88:80"
+      - "80:80"
       - "443:443"
     volumes:
       - ./nginx/www:/usr/share/nginx/html
@@ -20,7 +20,7 @@ services:
   php:
     build: ./php
     volumes:
-      - ./nginx/www:/usr/test
+      - ./nginx/www:/var/www/html
       - ./php/config/php.ini:/usr/local/etc/php/php.ini
     networks:
       - frontend
