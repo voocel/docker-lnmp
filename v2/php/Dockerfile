@@ -22,10 +22,10 @@ RUN cd ~ \
 
     && apk add libstdc++ libpng-dev \
     && cd ~ \
-    && wget https://github.com/swoole/swoole-src/archive/v4.2.8.tar.gz \
-    && tar -zxvf v4.2.8.tar.gz \
+    && wget https://github.com/swoole/swoole-src/archive/v4.2.12.tar.gz \
+    && tar -zxvf v4.2.12.tar.gz \
     && mkdir -p /usr/src/php/ext \
-    && mv swoole-src-4.2.8 /usr/src/php/ext/swoole \
+    && mv swoole-src-4.2.12 /usr/src/php/ext/swoole \
     && docker-php-ext-install swoole \
 
     && docker-php-ext-install pdo_mysql mysqli pcntl gd\

@@ -1,7 +1,7 @@
-# <center>使用Dockerfile 部署 LNMP+Redis 环境 </center>
+# <center>使用Docker 部署 LNMP+Redis 环境 </center>
 [![GitHub issues](https://img.shields.io/github/issues/voocel/docker-lnmp.svg)](https://github.com/voocel/docker-lnmp/issues)
-[![GitHub forks](https://img.shields.io/github/forks/voocel/docker-lnmp.svg)](https://github.com/voocel/docker-lnmp/network)
 [![GitHub stars](https://img.shields.io/github/stars/voocel/docker-lnmp.svg)](https://github.com/voocel/docker-lnmp/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/voocel/docker-lnmp.svg)](https://github.com/voocel/docker-lnmp/network)
 
 ### <font face="黑体">Docker 简介</font>
   Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的 Linux 机器上，也可以实现虚拟化。容器是完全使用沙箱机制，相互之间不会有任何接口。推荐内核版本3.8及以上
@@ -20,7 +20,7 @@
 * [目录结构](#目录结构)
 * [快速使用](#创建镜像与安装)
 * [进入容器内部](#进入容器内部)
-* [安装PHP扩展](#安装PHP扩展)
+* [PHP扩展安装](#PHP扩展安装)
 * [Composer安装](#Composer安装)
 * [常见问题处理](#常见问题处理)
 * [常用命令](#常用命令)
@@ -48,7 +48,7 @@ sudo systemctl enable docker.service
 sudo service docker start|restart|stop
 
 # 安装docker-compose
-curl -L https://github.com/docker/compose/releases/download/1.15.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 ```
 
@@ -106,6 +106,7 @@ docker-compose up -d
 *该版本是通过拉取官方已经制作好的各个服务的镜像，再通过Dockerfile相关命令根据自身需求做相应的调整。所以该方式构建迅速使用方便，因为是基于Alpine Linux所以占用空间很小。*
 
 ### 测试
+使用docker ps查看容器启动状态,若全部正常启动了则
 通过访问127.0.0.1、127.0.0.1/index.php、127.0.0.1/db.php、127.0.0.1/redis.php 即可完成测试
 (若想使用https则请修改nginx下的dockerfile，和nginx.conf按提示去掉注释即可，灵需要在ssl文件夹中加入自己的证书文件，本项目自带的是空的，需要自己替换，保持文件名一致)
 
@@ -127,7 +128,7 @@ PID=$(docker inspect --format "{{ .State.Pid }}" container_id)
 # nsenter --target $PID --mount --uts --ipc --net --pid
 ```
 
-### 安装PHP扩展
+### PHP扩展安装
 1. 安装PHP官方源码包里的扩展(如：同时安装pdo_mysql mysqli pcntl gd四个个扩展)
 
 *在php的Dockerfile中加入以下命令*
@@ -157,10 +158,10 @@ RUN cd ~ \
 
     && apk add libstdc++\
     && cd ~ \
-    && wget https://github.com/swoole/swoole-src/archive/v4.2.8.tar.gz \
-    && tar -zxvf v4.2.8.tar.gz \
+    && wget https://github.com/swoole/swoole-src/archive/v4.2.12.tar.gz \
+    && tar -zxvf v4.2.12.tar.gz \
     && mkdir -p /usr/src/php/ext \
-    && mv swoole-src-4.2.8 /usr/src/php/ext/swoole \
+    && mv swoole-src-4.2.12 /usr/src/php/ext/swoole \
     && docker-php-ext-install swoole \
 ```
 *注:因为该镜像需要先安装swoole依赖的libstdc++，否则安装成功后无法正常加载swoole扩展*
@@ -179,6 +180,11 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ 
 	   chmod 777 ./redis/redis.log
 	   chmod 777 ./redis/data
 	```
+* MYSQL连接失败问题
+在v2版本中是最新的MySQL8,而该版本的密码认证方式为Caching_sha2_password,而低版本的php和mysql可视化工具可能不支持,可通过phpinfo里的mysqlnd的Loaded plugins查看是否支持该认证方式,否则需要修改为原来的认证方式mysql_native_password:
+select user,host,plugin,authentication_string from mysql.user;
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+FLUSH PRIVILEGES;
 
 * 注意挂载目录的权限问题，不然容器成功启动几秒后立刻关闭，例：以下/data/run/mysql 目录没权限的情况下就会出现刚才那种情况
 		```
@@ -322,7 +328,7 @@ docker rmi $(docker images | awk '/^<none>/ { print $3 }')
 * `image` 指定为镜像名称或镜像ID。如果镜像不存在，Compose将尝试从互联网拉取这个镜像
 * `build` 指定Dockerfile所在文件夹的路径。Compose将会利用他自动构建这个镜像，然后使用这个镜像
 * `command` 覆盖容器启动后默认执行的命令
-* links 链接到其他服务容器，使用服务名称(同时作为别名)或服务别名（SERVICE:ALIAS）都可以
+* `links` 链接到其他服务容器，使用服务名称(同时作为别名)或服务别名（SERVICE:ALIAS）都可以
 * `external_links` 链接到docker-compose.yml外部的容器，甚至并非是Compose管理的容器。参数格式和links类似
 * `ports` 暴露端口信息。宿主机器端口：容器端口（HOST:CONTAINER）格式或者仅仅指定容器的端口（宿主机器将会随机分配端口）都可以(注意：当使用 HOST:CONTAINER 格式来映射端口时，如果你使用的容器端口小于 60 你可能会得到错误得结果，因为 YAML 将会解析 xx:yy 这种数字格式为 60 进制。所以建议采用字符串格式。)
 * `expose` 暴露端口，与posts不同的是expose只可以暴露端口而不能映射到主机，只供外部服务连接使用；仅可以指定内部端口为参数
