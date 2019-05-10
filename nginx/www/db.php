@@ -13,9 +13,8 @@ try{
   $con = new mysqli("mysql","root","123456");
 
   if($con->connect_error){
-    die("fail....".$con->connect_error);
-    }else{
-
-      echo "ok....";
-   }
+      die("connect fail".$con->connect_error);
+  }else{
+      echo "connect success!";
+  }
 
