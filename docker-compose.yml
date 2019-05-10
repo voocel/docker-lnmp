@@ -1,58 +1,40 @@
-version: '2'
-# 定义四个服务nginx,php,mysql,redis
+version: '3'
 services:
   nginx:
-    # 依赖php服务，意味着在启动nginx之前先启动php
+    build: ./nginx
     depends_on:
       - php
-      # nginx镜像的路径
-    #build: ./nginx
-    image: yahuiwong/lnmp:nginx1.13.0
-        # 这样使nginx容器把网站文件和目录存放到主机目录中，持久化和方便管理
-    volumes:
-      - ./nginx/www:/usr/share/nginx/html
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/ssl/:/etc/nginx/ssl/
-      - ./nginx/log/error.log:/var/log/nginx/error.log
-        # nginx意外退出时自动重启
-    restart: always
-
-        # 映射80和443端口
-    ports:
+    ports: 
       - "80:80"
       - "443:443"
+    volumes:
+      - ./nginx/www:/usr/share/nginx/html
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/cert:/etc/nginx/cert
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/log/error.log:/var/log/nginx/error.log
     networks:
       - frontend
-
-        # 容器名称
+    restart: always
     container_name: nginx
 
   php:
-    depends_on:
-      - mysql
-      - redis
-    #build: ./php
-    image: yahuiwong/lnmp:php7.1.5
-    ports:
-      - "9000"
+    build: ./php
+    volumes:
+      - ./nginx/www:/var/www/html
+      - ./php/config/php.ini:/usr/local/etc/php/php.ini
+      - ./php/config/php-fpm.conf:usr/local/etc/php-fpm.conf
+      - ./php/config/php-fpm.d:/usr/local/etc/php-fpm.d
     networks:
       - frontend
-      - backend      
-    volumes:
-      - ./php/php-fpm.conf:/usr/local/php/etc/php-fpm.conf
-      - ./php/www.conf:/usr/local/php/etc/php-fpm.d/www.conf
-      - ./php/php.ini:/usr/local/php/etc/php.ini
-      - ./php/log/php-fpm.log:/usr/local/php/var/log/php-fpm.log
-      - ./nginx/www:/usr/share/nginx/html
+      - backend  
     restart: always
     container_name: php
 
-  # MySQL
   mysql:
-    image: hub.c.163.com/library/mysql:latest
+    build: ./mysql
     ports:
-      - "127.0.0.1:3306:3306"
+      - "3306:3306"
     volumes:
       - ./mysql/data:/var/lib/mysql
       - ./mysql/my.cnf:/etc/my.cnf
@@ -63,20 +45,20 @@ services:
     restart: always
     container_name: mysql
 
-  # REDIS
   redis:
-    #build: ./redis
-    image: yahuiwong/lnmp:redis3.2.9
+    build: ./redis
     ports:
-      - "127.0.0.1:6379:6379"
-    networks:
-      - backend      
+      - "6379:6379"
     volumes:
-      - ./redis/redis.conf:/usr/local/redis/redis.conf
+      - ./redis/redis.conf/:/usr/local/etc/redis.conf
+      - ./redis/data:/usr/local/redis/data
       - ./redis/redis.log:/usr/local/redis/redis.log
+    networks:
+      - backend
     restart: always
     container_name: redis
 
 networks:
   frontend:
   backend:
+    
