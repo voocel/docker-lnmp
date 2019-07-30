@@ -85,24 +85,27 @@ docker_lnmp
 ### 创建镜像与安装
 > 直接使用docker-compose一键制作镜像并启动容器
 
-**版本一**
-
-*该版本是通过拉取纯净的CentOS镜像，通过Dockerfile相关命令进行源码编译安装各个服务。所以该方式很方便定制自己需要的镜像，但是占用空间大且构建慢。*
+**版本一(v1)**
 
 ```
 git clone https://github.com/voocel/docker-lnmp.git
-cd docker-lnmp
+cd docker-lnmp/v1
 docker-compose up -d
 ```
 
-**版本二(推荐)**
+*该版本是通过拉取纯净的CentOS镜像，通过Dockerfile相关命令进行源码编译安装各个服务。所以该方式很方便定制自己需要的镜像，但是占用空间大且构建慢。*
+
+
+**当前版本(推荐)**
 ```
 git clone https://github.com/voocel/docker-lnmp.git
-cd docker-lnmp/v2
+cd docker-lnmp
 chmod 777 ./redis/redis.log
 chmod -R 777 ./redis/data
 docker-compose up -d
 ```
+*站点根目录为 docker-lnmp/www*
+
 *该版本是通过拉取官方已经制作好的各个服务的镜像，再通过Dockerfile相关命令根据自身需求做相应的调整。所以该方式构建迅速使用方便，因为是基于Alpine Linux所以占用空间很小。*
 
 ### 测试
@@ -150,18 +153,18 @@ RUN pecl install memcached-2.2.0 \
 ```
 # 安装Redis和swoole扩展
 RUN cd ~ \
-    && wget https://github.com/phpredis/phpredis/archive/4.2.0.tar.gz \
-    && tar -zxvf 4.2.0.tar.gz \
+    && wget https://github.com/phpredis/phpredis/archive/5.0.2.tar.gz \
+    && tar -zxvf 5.0.2.tar.gz \
     && mkdir -p /usr/src/php/ext \
-    && mv phpredis-4.2.0 /usr/src/php/ext/redis \
+    && mv phpredis-5.0.2 /usr/src/php/ext/redis \
     && docker-php-ext-install redis \
 
     && apk add libstdc++\
     && cd ~ \
-    && wget https://github.com/swoole/swoole-src/archive/v4.2.12.tar.gz \
-    && tar -zxvf v4.2.12.tar.gz \
+    && wget https://github.com/swoole/swoole-src/archive/v4.4.2.tar.gz \
+    && tar -zxvf v4.4.2.tar.gz \
     && mkdir -p /usr/src/php/ext \
-    && mv swoole-src-4.2.12 /usr/src/php/ext/swoole \
+    && mv swoole-src-4.4.2 /usr/src/php/ext/swoole \
     && docker-php-ext-install swoole \
 ```
 *注:因为该镜像需要先安装swoole依赖的libstdc++，否则安装成功后无法正常加载swoole扩展*
