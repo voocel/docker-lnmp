@@ -1,0 +1,207 @@
+version: "3.2"
+services:
+  es-master:
+    container_name: es-master
+    hostname: es-master
+    image: elasticsearch:7.4.2
+    restart: always
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - ./elasticsearch/master/conf/es-master.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./elasticsearch/master/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/master/logs:/usr/share/elasticsearch/logs
+      - ./escerts:/usr/share/elasticsearch/config/certs
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - TIMEZONE=Asia/ShangHai
+      - ELASTIC_PASSWORD=123456
+    #ulimits:
+    #  memlock:
+    #    soft: -1
+    #    hard: -1
+    #  nofile:
+    #    soft: 65536
+    #    hard: 65536
+    networks:
+      - elknet
+
+  es-slave1:
+    container_name: es-slave1
+    image: elasticsearch:7.4.2
+    restart: always
+    ports:
+      - 9201:9200
+      - 9301:9300
+    volumes:
+      - ./elasticsearch/slave1/conf/es-slave1.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./elasticsearch/slave1/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/slave1/logs:/usr/share/elasticsearch/logs
+      - ./escerts:/usr/share/elasticsearch/config/certs
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - TIMEZONE=Asia/ShangHai
+    #ulimits:
+    #  memlock:
+    #    soft: -1
+    #    hard: -1
+    #  nofile:
+    #    soft: 65536
+    #    hard: 65536
+    networks:
+      - elknet
+
+  es-slave2:
+    container_name: es-slave2
+    image: elasticsearch:7.4.2
+    restart: always
+    ports:
+      - 9202:9200
+      - 9302:9300
+    volumes:
+      - ./elasticsearch/slave2/conf/es-slave2.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./elasticsearch/slave2/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/slave2/logs:/usr/share/elasticsearch/logs
+      - ./escerts:/usr/share/elasticsearch/config/certs
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - TIMEZONE=Asia/ShangHai
+    #ulimits:
+    #  memlock:
+    #    soft: -1
+    #    hard: -1
+    #  nofile:
+    #    soft: 65536
+    #    hard: 65536
+    networks:
+      - elknet
+
+  # kibana
+  kibana:
+    container_name: kibana
+    hostname: kibana
+    image: kibana:7.4.2
+    restart: always
+    ports:
+      - 5601:5601
+    volumes:
+      - ./kibana/conf/kibana.yml:/usr/share/kibana/config/kibana.yml
+    environment:
+      - elasticsearch.hosts=http://es-master:9200
+      - TIMEZONE=Asia/ShangHai
+    depends_on:
+      - es-master
+      - es-slave1
+      - es-slave2
+    networks:
+      - elknet
+
+  # logstash
+  logstash:
+    container_name: logstash
+    hostname: logstash
+    image: logstash:7.4.2
+    command: logstash -f ./conf/logstash-filebeat.conf
+    restart: always
+    volumes:
+      # 映射到容器中
+      - ./logstash/conf/logstash-filebeat.conf:/usr/share/logstash/conf/logstash-filebeat.conf
+      - ./logstash/conf/logstash.yml:/usr/share/logstash/config/logstash.yml
+    environment:
+      - elasticsearch.hosts=http://es-master:9200
+      # 解决logstash监控连接报错
+      - xpack.monitoring.elasticsearch.hosts=http://es-master:9200
+      - TIMEZONE=Asia/ShangHai
+    ports:
+      - 5044:5044
+    depends_on:
+      - es-master
+      - es-slave1
+      - es-slave2
+    networks:
+      - elknet
+
+  # filebeat
+  filebeat:
+    container_name: filebeat
+    hostname: filebeat
+    image: docker.elastic.co/beats/filebeat:7.4.2
+    restart: always
+    volumes:
+      - ./filebeat/conf/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./logs:/var/log
+      - ./filebeat/logs:/usr/share/filebeat/logs
+      - ./filebeat/data:/usr/share/filebeat/data
+    # 将指定容器连接到当前连接，可以设置别名，避免ip方式导致的容器重启动态改变的无法连接情况
+    environment:
+      - TIMEZONE=Asia/ShangHai
+    links:
+      - logstash
+    # 依赖服务[可无]
+    depends_on:
+      - es-master
+      - es-slave1
+      - es-slave2
+    networks:
+      - elknet
+
+  # es-head
+  es-head:
+    container_name: es-head
+    image: mobz/elasticsearch-head:5
+    restart: always
+    ports:
+      - 9100:9100
+    depends_on:
+      - es-master
+      - es-slave1
+      - es-slave2
+    networks:
+      - elknet
+
+  # es监控工具
+  cerebro:
+    container_name: cerebro
+    image: lmenezes/cerebro
+    restart: always
+    ports:
+      - 9001:9000
+    command:
+      - -Dhosts.0.host=http://es-master:9200
+    networks:
+      - elknet
+
+  # es索引管理
+  #curator:
+  #  container_name: curator
+  #  image: elastic/curator
+  #  environment:
+  #    ELASTICSEARCH_HOST: http://es-master:9200
+  #    CRON: "30 0 * * *" # 每天 0 点 30 分清理 ${UNIT_COUNT} 天之前的索引
+  #    CONFIG_FILE: /usr/share/curator/config/curator.yml
+  #    COMMAND: /usr/share/curator/config/delete_log_files_curator.yml
+  #    UNIT_COUNT: 10
+  #  network_mode: "host"
+  #  restart: always
+  #  depends_on:
+  #    - es-master
+  #    - es-slave1
+  #    - es-slave2
+
+  # docker可视化工具
+  #portainer:
+  #  container_name: portainer
+  #  image: portainer/portainer
+  #  ports:
+  #    - 9002:9002
+  #  command: -H unix:///var/run/docker.sock
+  #  volumes:
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #    - ./portainer-data:/data
+  #  networks:
+  #    - elknet
+
+networks:
+  elknet:
+    driver: bridge

@@ -108,6 +108,12 @@ docker-compose up -d
 
 *该版本是通过拉取官方已经制作好的各个服务的镜像，再通过Dockerfile相关命令根据自身需求做相应的调整。所以该方式构建迅速使用方便，因为是基于Alpine Linux所以占用空间很小。*
 
+**ELK(+filebeat)**
+```
+cd docker-lnmp/elk
+chmod +x elk.sh
+./elk.sh
+```
 ### 测试
 使用docker ps查看容器启动状态,若全部正常启动了则
 通过访问127.0.0.1、127.0.0.1/index.php、127.0.0.1/db.php、127.0.0.1/redis.php 即可完成测试

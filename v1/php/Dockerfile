@@ -7,6 +7,7 @@ MAINTAINER voocel <voocel@gmail.com>
 # 设置 PHP 和redis版本
 ENV PHP_VERSION 7.3.7
 ENV REDIS_VERSION 5.0.2
+ENV SWOOLE_VERSION 4.4.3
 # 安装依赖
 RUN set -x \
   && yum update -y \
@@ -90,6 +91,21 @@ RUN set -x \
   && php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
   && php composer-setup.php --install-dir=/usr/local/sbin --filename=composer \
   && php -r "unlink('composer-setup.php');" \
+
+  # 安装swoole 扩展
+  && cd ~/download
+  && wget https://github.com/swoole/swoole-src/archive/v${SWOOLE_VERSION}.tar.gz -O swoole.tar.gz \
+  && mkdir -p swoole \
+  && tar -xf swoole.tar.gz -C swoole --strip-components=1 \
+  && rm swoole.tar.gz \
+  && ( \
+  cd swoole \
+  && phpize \
+  && ./configure --enable-openssl \
+  && make \
+  && make install \
+  ) \
+  && sed -i "2i extension=swoole.so" /etc/php.ini
 
   # 删除安装文件
   && rm -rf ~/download \

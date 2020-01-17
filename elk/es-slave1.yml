@@ -1,0 +1,41 @@
+# 集群名称
+cluster.name: es-cluster
+# 节点名称
+node.name: es-slave1
+# 是否可以成为master节点
+node.master: true
+# 是否允许该节点存储数据,默认开启
+node.data: true
+# 锁住内存，不被使用到交换分区去
+#bootstrap.memory_lock: true
+# 网络绑定
+network.host: 0.0.0.0
+# 设置对外服务的http端口
+http.port: 9201
+# 设置节点间交互的tcp端口
+#transport.port: 9301
+# 集群发现
+discovery.seed_hosts:
+  - es-master
+  - es-slave1
+  - es-slave2
+# 手动指定可以成为 mater 的所有节点的 name 或者 ip，这些配置将会在第一次选举中进行计算
+cluster.initial_master_nodes:
+  - es-master
+# 支持跨域访问
+http.cors.enabled: true
+http.cors.allow-origin: "*"
+http.cors.allow-headers: Authorization,X-Requested-With,Content-Length,Content-Type
+# 安全认证
+xpack.license.self_generated.type: trial
+xpack.security.enabled: true
+xpack.monitoring.collection.enabled: true
+
+################################ basic ssl #########################################
+# xpack.security.enabled: true
+# xpack.license.self_generated.type: basic
+# xpack.security.transport.ssl.enabled: true
+# xpack.security.transport.ssl.verification_mode: certificate
+# xpack.security.transport.ssl.keystore.path: certs/elastic-certificates.p12
+# xpack.security.transport.ssl.truststore.path: certs/elastic-certificates.p12
+####################################################################################

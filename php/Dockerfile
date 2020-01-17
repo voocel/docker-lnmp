@@ -11,8 +11,8 @@ COPY config/php.ini /usr/local/etc/php
 #    && make \
 #    && make install \
 
-ENV PHPREDIS_VERSION 5.0.2
-ENV SWOOLE_VERSION 4.4.2
+ENV PHPREDIS_VERSION 5.1.1
+ENV SWOOLE_VERSION 4.4.15
 
 RUN cd ~ \
     && useradd --create-home --no-log-init --shell /bin/bash git \
@@ -24,10 +24,10 @@ RUN cd ~ \
 
     && apk add libstdc++ libpng-dev \
     && cd ~ \
-    && wget https://github.com/swoole/swoole-src/archive/v$SWOOLE_VERSION.tar.gz \
-    && tar -zxvf v$SWOOLE_VERSION.tar.gz \
+    && wget https://github.com/swoole/swoole-src/archive/v$SWOOLE_VERSION.tar.gz -O swoole.tar.gz \
+    && tar -zxvf swoole.tar.gz \
     && mkdir -p /usr/src/php/ext \
-    && mv swoole-src-$SWOOLE_VERSION /usr/src/php/ext/swoole \
+    && mv swoole /usr/src/php/ext/swoole \
     && docker-php-ext-install swoole \
 
     && docker-php-ext-install pdo_mysql mysqli pcntl gd\

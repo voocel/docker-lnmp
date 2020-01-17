@@ -1,0 +1,37 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    # 日志文件路径列表，可用通配符，不递归
+    - /var/log/*.log
+    - /var/log/*.json
+    # - /var/log/php/php-fpm.log
+  multiline.pattern: ^\[
+  multiline.negate: true
+  multiline.match: after
+
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+setup.template.settings:
+  index.number_of_shards: 1
+
+setup.dashboards.enabled: false
+
+setup.kibana:
+  host: "http://kibana:5601"
+
+# 直接传输至es
+#output.elasticsearch:
+# hosts: ["http://es-master:9200"]
+# index: "filebeat-%{[beat.version]}-%{+yyyy.MM.dd}"
+# username: 'elastic'
+# password: '123456'
+
+output.logstash:
+  hosts: ["logstash:5044"]
+
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
