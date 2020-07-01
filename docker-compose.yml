@@ -20,8 +20,10 @@ services:
 
   php:
     build: ./php
+    ports:
+      - "9501:9501"
     volumes:
-      - ./nginx/www:/var/www/html
+      - ./www:/var/www/html
       - ./php/config/php.ini:/usr/local/etc/php/php.ini
       - ./php/config/php-fpm.conf:/usr/local/etc/php-fpm.conf
       - ./php/config/php-fpm.d:/usr/local/etc/php-fpm.d
@@ -57,7 +59,27 @@ services:
       - backend
     restart: always
     container_name: redis
-
+  
+  rabbitmq:
+    #容器名称
+    container_name: rabbitmq
+    #镜像名称
+    image: rabbitmq:3.8.3
+    #总是重启后启动
+    restart: always
+    #端口映射
+    ports:
+      - 5672:5672
+      - 15672:15672
+    #挂载
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq
+    #环境变量
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=123456
+    networks:
+      - backend
 networks:
   frontend:
   backend:

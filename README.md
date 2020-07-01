@@ -109,6 +109,8 @@ docker-compose up -d
 *该版本是通过拉取官方已经制作好的各个服务的镜像，再通过Dockerfile相关命令根据自身需求做相应的调整。所以该方式构建迅速使用方便，因为是基于Alpine Linux所以占用空间很小。*
 
 **ELK(+filebeat)**
+
+Elasticsearch、Logstash、Kibana、Filebeat一键搭建日志收集系统
 ```
 cd docker-lnmp/elk
 chmod +x elk.sh
