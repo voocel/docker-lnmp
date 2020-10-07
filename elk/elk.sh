@@ -18,12 +18,12 @@ if [ "$(free -g|awk '/^Mem/{print $2-$3}')" -le 4 ];then
 fi
 
 #优化系统
-if [ -z "$(grep vm.max_map_count /etc/sysctl.conf)" ];then
-    echo 'vm.max_map_count=655360' >>/etc/sysctl.conf
-else
-    sed -i 's/vm.max_map_count.*/vm.max_map_count=655360/g' /etc/sysctl.conf
-fi
-sysctl -p
+#if [ -z "$(grep vm.max_map_count /etc/sysctl.conf)" ];then
+#    echo 'vm.max_map_count=655360' >>/etc/sysctl.conf
+#else
+#    sed -i 's/vm.max_map_count.*/vm.max_map_count=655360/g' /etc/sysctl.conf
+#fi
+#sysctl -p
 
 # 创建目录
 echo -e "${BLUE_COLOR}---> create [elasticsearch]directory start.${RES}"
