@@ -131,6 +131,7 @@ services:
     volumes:
       - ./filebeat/conf/filebeat.yml:/usr/share/filebeat/filebeat.yml
       - ./logs:/var/log
+      - /www/docker/log:/var/laravellog
       - ./filebeat/logs:/usr/share/filebeat/logs
       - ./filebeat/data:/usr/share/filebeat/data
     # 将指定容器连接到当前连接，可以设置别名，避免ip方式导致的容器重启动态改变的无法连接情况

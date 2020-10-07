@@ -6,8 +6,10 @@ node.name: es-master
 node.master: true
 # 是否允许该节点存储数据,默认开启
 node.data: false
-# 锁住内存，不被使用到交换分区去
+# 锁住内存，不被使用到交换分区去, 生产必须为true，内存锁定检查，目的是内存地址直接映射，减少一次copy时间
 #bootstrap.memory_lock: true
+# 系统过滤检查，防止数据损坏，考虑集群安全，生产设置成false
+#bootstrap.system_call_filter: false
 # 网络绑定
 network.host: 0.0.0.0
 # 设置对外服务的http端口

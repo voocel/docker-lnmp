@@ -1,4 +1,8 @@
-FROM daocloud.io/library/php:7.3-fpm-alpine
+ARG PHP_VERSION
+ARG SWOOLE_VERSION
+ARG AMQP_VERSION
+
+FROM daocloud.io/library/php:$PHP_VERSION-fpm-alpine
 
 COPY config/php.ini /usr/local/etc/php
 
@@ -10,10 +14,6 @@ COPY config/php.ini /usr/local/etc/php
 #    && ./configure --with-php-config=/usr/local/bin/php-config \
 #    && make \
 #    && make install \
-
-ENV SWOOLE_VERSION 4.5.2
-ENV PHPREDIS_VERSION 5.3.0
-ENV AMQP_VERSION 1.10.2
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 

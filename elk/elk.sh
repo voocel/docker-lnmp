@@ -12,6 +12,19 @@ echo -e "${BLUE_COLOR}#                       Blog: www.voocel.com              
 echo -e "${BLUE_COLOR}#                       Email: voocel@gmail.com                        #${RES}"
 echo -e "${BLUE_COLOR}# ######################################################################${RES}"
 
+if [ "$(free -g|awk '/^Mem/{print $2-$3}')" -le 4 ];then
+   echo "可用内存小于4g，退出！"
+   exit
+fi
+
+#优化系统
+if [ -z "$(grep vm.max_map_count /etc/sysctl.conf)" ];then
+    echo 'vm.max_map_count=655360' >>/etc/sysctl.conf
+else
+    sed -i 's/vm.max_map_count.*/vm.max_map_count=655360/g' /etc/sysctl.conf
+fi
+sysctl -p
+
 # 创建目录
 echo -e "${BLUE_COLOR}---> create [elasticsearch]directory start.${RES}"
 if [ ! -d "./elasticsearch/" ]; then

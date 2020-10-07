@@ -297,6 +297,7 @@ ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
 * `docker rm` 容器ID  删除容器，注，运行中的容器无法删除
 * `docker rm $(docker ps -aq)` 删除所有容器
 * `docker rmi $(docker images -aq)` 删除所有镜像
+* `docker rmi $(docker images -f "dangling=true" -q)` 删除`<none>:<none>`空悬镜像
 * `docker images` 列出镜像
 * `docker pull` 镜像名:标签 拉镜像
 * `docker search`  查找docker Hub 上公共的可用镜像 

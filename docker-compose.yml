@@ -1,7 +1,10 @@
 version: '3'
 services:
   nginx:
-    build: ./nginx
+    build: 
+      context: ./nginx
+      args:
+        NGINX_VERSION: $NGINX_VERSION
     depends_on:
       - php
     ports: 
@@ -19,7 +22,12 @@ services:
     container_name: nginx
 
   php:
-    build: ./php
+    build: 
+      context: ./php
+      args:
+        PHP_VERSION: $PHP_VERSION
+        SWOOLE_VERSION: $SWOOLE_VERSION
+        AMQP_VERSION: $AMQP_VERSION
     ports:
       - "9501:9501"
     volumes:

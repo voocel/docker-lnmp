@@ -2,13 +2,30 @@ filebeat.inputs:
 - type: log
   enabled: true
   paths:
-    # 日志文件路径列表，可用通配符，不递归
     - /var/log/*.log
-    - /var/log/*.json
-    # - /var/log/php/php-fpm.log
   multiline.pattern: ^\[
   multiline.negate: true
   multiline.match: after
+  fields:
+    log_source: nginx
+
+- type: log
+  enabled: true
+  paths:
+    # 日志文件路径列表，可用通配符，不递归
+    - /var/laravellog/*.log
+    # - /var/log/php/php-fpm.log
+  # 正则表达式，匹配日记与 2020-06-01 为开头的记录为同一条日记记录。Filebeat 将所有不以 2020-06-01 开始的行与之前的行进行合并。
+  multiline.pattern: '^[0-9]{4}/[0-9]{2}/[0-9]{2}'
+  # multiline.negate 与 multiline.match 配合使用。 multiline.pattern=^b 则以 b 开头的行是一条完整日志的开始，它和后面多个不以 b 开头的行组成一条完整日志
+  multiline.negate: true
+  multiline.match: after
+  # timeout 表示超时时间，如果超过 timeout 还没有新的一行日志产生，则自动结束当前的多行、形成一条日志发出去。
+  multiline.timeout: 5s
+  # Filebeat 以多快的频率去 prospector 指定的目录下面检测文件更新（比如是否有新增文件），如果设置为 0s，则 Filebeat 会尽可能快地感知更新（占用的 CPU 会变高）。默认是 10s。
+  scan_frequency: 5s
+  fields:
+    log_source: laravel
 
 filebeat.config.modules:
   path: ${path.config}/modules.d/*.yml
