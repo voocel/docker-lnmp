@@ -1,0 +1,41 @@
+global:
+  # 默认情况下，每15s拉取一次目标采样点数据。
+  scrape_interval: 15s 
+  # 我们可以附加一些指定标签到采样点度量标签列表中, 用于和第三方系统进行通信, 包括：federation, remote storage, Alertmanager
+  external_labels:
+    # 下面就是拉取自身服务采样点数据配置
+    monitor: 'codelab-monitor'
+rule_files:
+  - /etc/prometheus/rules/*.yml
+scrape_configs:
+  # job名称会增加到拉取到的所有采样点上，同时还有一个instance目标服务的host：port标签也会增加到采样点上
+  - job_name: prometheus
+    # 覆盖global的采样点，拉取时间间隔5s
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:9090']
+ 
+  # - job_name: linux    #(node-exporler)指向pushgateway
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']
+  #       labels:
+  #         instance: localhost
+  
+  - job_name: six-sync-gateway
+    static_configs:
+      - targets: ['docker.for.mac.localhost:8081']
+
+  - job_name: hearbeat-redis-service
+    static_configs:
+      - targets: ['docker.for.mac.localhost:8082']
+          
+  # - job_name: cadvisor
+  #   # 覆盖global的采样点，拉取时间间隔5s
+  #   scrape_interval: 5s
+  #   metrics_path: '/actuator/prometheus'
+  #   static_configs:
+  #     - targets: ['172.17.12.91:8080']
+
+# 1. 点击设置 --> Data Sources --> Add data source --> Prometheus --> URL(填写 http://ip:23333)
+# 2. 添加图形插件：
+# 访问地址https://grafana.com/grafana/dashboards/8919 --> Download JSON --> 回到自己的grafana主页面 --> 左上角的home --> Import dashboard --> Upload.json file --> 该填的都填了，可以点Import就行

@@ -1,0 +1,29 @@
+FROM alpine
+
+maintainer lzh "lzh@gmail.com"
+
+ENV NGINX_VERSION 1.16.1
+
+#COPY repositories /etc/apk/repositories
+RUN echo "http://mirrors.aliyun.com/alpine/latest-stable/main/" > /etc/apk/repositories \
+    && echo "http://mirrors.aliyun.com/alpine/latest-stable/community/" >> /etc/apk/repositories \
+    && apk update && apk add iotop gcc libgcc libc-dev libcurl libc-utils pcre-dev zlib-dev libnfs make pcre pcre2 zip unzip net-tools pstree wget libevent libevent-dev iproute2 \
+    && addgroup  -g 2100 -S nginx && adduser  -s /sbin/nologin -S -D  -u 2100 -G nginx nginx \
+    && apk add nodejs npm \
+    && npm install -g yarn
+
+ADD https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz /opt/
+RUN cd /opt && tar zxvf nginx-$NGINX_VERSION.tar.gz && cd /opt/nginx-$NGINX_VERSION && ./configure  --prefix=/apps/nginx && make && make install && ln -sv /apps/nginx/sbin/nginx  /usr/bin/
+
+COPY nginx.conf /apps/nginx/conf/nginx.conf
+ADD ./dist/ /data/nginx/html/
+RUN chown  nginx.nginx /data/nginx/ /apps/nginx/ -R
+
+EXPOSE 80 443
+
+STOPSIGNAL SIGTERM
+
+CMD ["nginx", "-g", "daemon off;"]
+
+# docker build -t alpine-nginx:v1.16.1 .
+# docker run -d -p 8081:80 --name sdk -v $PWD/nginx.conf:/apps/nginx/conf/nginx.conf -v $PWD/dist/:/data/nginx/html/ alpine-nginx:v1.16.1

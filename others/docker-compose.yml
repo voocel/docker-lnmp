@@ -1,0 +1,163 @@
+version: '3.2'
+# chmod 777 mongo/db
+services:
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.8.3
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=123456
+    networks:
+      - backend
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    restart: always
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      - ZOO_MY_ID=1  # 节点ID
+    networks:
+      - backend
+
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    restart: always
+    ports:
+      - "9092:9092"
+      - "7203:7203"
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_BROKER_ID=1  # 在 kafka 集群中，每个 kafka 都有一个 BROKER_ID 来区分自己
+      - KAFKA_LISTENERS=PLAINTEXT://kafka:9092  # 配置 kafka 的监听端口
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181  # 配置 zookeeper
+      - KAFKA_MESSAGE_MAX_BYTES=2000000
+      # - KAFKA_AUTO_CREATE_TOPICS_ENABLE=false
+      - KAFKA_CREATE_TOPICS=all_logs:1:1
+    volumes:
+      - "/etc/localtime:/etc/localtime"  # 容器时间同步虚拟机的时间
+    networks:
+      - backend
+
+  kafka-manager:  
+    image: sheepkiller/kafka-manager   # 开源的web管理kafka集群的界面
+    restart: always
+    container_name: manager-kafka
+    ports:  
+      - "9000:9000"
+    links:
+      - kafka
+      - zookeeper
+    environment:
+      - ZK_HOSTS=192.168.10.20:2181
+      - KAFKA_BROKERS=192.168.10.20:9092
+      - APPLICATION_SECRET=letmein
+      - KAFKA_MANAGER_AUTH_ENABLED=true # 开启验证
+      - KAFKA_MANAGER_USERNAME=admin # 用户名
+      - KAFKA_MANAGER_PASSWORD=admin # 密码
+    networks:
+      - backend
+
+  emqx:
+    image: emqx/emqx:4.3.1
+    restart: always
+    container_name: emqx
+    ports:  
+      - "1883:1883"
+      - "8081:8081"
+      - "8083:8083"
+      - "8084:8084"
+      - "8883:8883"
+      - "18083:18083"
+    networks:
+      - backend
+
+  mongo:
+    build: ./mongo
+    restart: always
+    container_name: mongo
+    ports:  
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=123456
+    volumes:
+      - ./mongo/db:/data/db
+    networks:
+      - backend
+
+  ######################################## Prometheus监控 #############################################
+  prometheus:
+    image: prom/prometheus:latest
+    hostname: prometheus
+    container_name: prometheus
+    restart: always
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/rules:/etc/prometheus/rules
+    depends_on:
+      - cadvisor
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    hostname: node-exporter
+    container_name: node-exporter
+    restart: always
+    ports:
+      - '9100:9100'
+    # command:
+    #   - '--path.procfs=/host/proc'
+    #   - '--path.sysfs=/host/sys'
+    #   - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    # volumes:
+    #   - /proc:/host/proc
+    #   - /sys:/host/sys
+    #   - /:/rootfs
+    networks:
+      - monitor
+
+  cadvisor:
+    image: google/cadvisor:latest
+    container_name: cadvisor
+    hostname: cadvisor
+    restart: always
+    ports:
+      - '8080:8080'
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - monitor
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    hostname: grafana
+    restart: always
+    ports:
+      - '3000:3000'
+    networks:
+      - monitor
+
+networks:
+  frontend:
+  backend:
+  monitor:
+    driver: bridge
+#  zk:
+#    driver: bridge
+    

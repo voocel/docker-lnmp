@@ -1,0 +1,53 @@
+groups:
+- name: Host
+  rules:
+  - alert: HostMemory Usage
+    expr: (node_memory_MemTotal_bytes - (node_memory_MemFree_bytes + node_memory_Buffers_bytes + node_memory_Cached_bytes)) / node_memory_MemTotal_bytes * 100 >  40
+    for: 1m
+    labels:
+      name: Memory
+      severity: Warning
+    annotations:
+      summary: " {{ $labels.appname }} "
+      description: "宿主机内存使用率超过40%."
+      value: "{{ $value }}"
+  - alert: HostCPU Usage
+    expr: sum(avg without (cpu)(irate(node_cpu_seconds_total{mode!='idle'}[5m]))) by (instance,appname) > 0.5
+    for: 1m
+    labels:
+      name: CPU
+      severity: Warning
+    annotations:
+      summary: " {{ $labels.appname }} "
+      description: "宿主机CPU使用率超过50%."
+      value: "{{ $value }}"
+  - alert: HostLoad
+    expr: node_load5 > 20
+    for: 1m
+    labels:
+      name: Load
+      severity: Warning
+    annotations:
+      summary: "{{ $labels.appname }} "
+      description: " 主机负载5分钟超过20."
+      value: "{{ $value }}"
+  - alert: HostNetwork_receive
+    expr: irate(node_network_receive_bytes_total{device!~"lo|bond[0-9]|cbr[0-9]|veth.*|virbr.*|ovs-system"}[5m]) / 1048576  > 10
+    for: 1m
+    labels:
+      name: Network_receive
+      severity: Warning
+    annotations:
+      summary: " {{ $labels.appname }} "
+      description: " 宿主机 [{{ $labels.device }}] 网卡5分钟平均接收流量超过10Mbps."
+      value: "{{ $value }}3Mbps"
+  - alert: hostNetwork_transmit
+    expr: irate(node_network_transmit_bytes_total{device!~"lo|bond[0-9]|cbr[0-9]|veth.*|virbr.*|ovs-system"}[5m]) / 1048576  > 10
+    for: 1m
+    labels:
+      name: Network_transmit
+      severity: Warning
+    annotations:
+      summary: " {{ $labels.appname }} "
+      description: " 宿主机 [{{ $labels.device }}] 网卡5分钟内平均发送流量超过10Mbps."
+      value: "{{ $value }}3Mbps"

@@ -1,0 +1,48 @@
+FROM php:7.4-fpm
+
+RUN set -eux; \
+    mv /etc/apt/sources.list /etc/apt/sources.list.bak \
+    && echo "deb http://mirrors.aliyun.com/debian/ buster main non-free contrib \n \
+      deb-src http://mirrors.aliyun.com/debian/ buster main non-free contrib \n \
+      deb http://mirrors.aliyun.com/debian-security buster/updates main \n \
+      deb-src http://mirrors.aliyun.com/debian-security buster/updates main \n \
+      deb http://mirrors.aliyun.com/debian/ buster-updates main non-free contrib \n \
+      deb-src http://mirrors.aliyun.com/debian/ buster-updates main non-free contrib \n \
+      deb http://mirrors.aliyun.com/debian/ buster-backports main non-free contrib \n \
+      deb-src http://mirrors.aliyun.com/debian/ buster-backports main non-free contrib" > /etc/apt/sources.list
+
+RUN set -eux; \
+    apt-get update && apt-get install -y \
+       git vim wget unzip bzip2 libzip-dev libbz2-dev libjpeg-dev libpng-dev curl libcurl4-openssl-dev libonig-dev \
+       libmagickwand-dev libmcrypt-dev libonig-dev libxml2-dev libfreetype6-dev libjpeg62-turbo-dev zlib1g-dev \
+
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-install zip pdo_mysql opcache mysqli mbstring bz2 soap bcmath calendar exif gettext sockets pcntl \
+    && pecl install imagick-3.4.4 mcrypt-1.0.4 redis-5.3.4 xdebug-3.0.4 swoole-4.6.7 protobuf grpc \
+    && docker-php-ext-enable imagick mcrypt redis xdebug swoole protobuf grpc \
+    && rm -r /var/lib/apt/lists/* \
+    && usermod -u 1000 www-data \
+    && groupmod -g 1000 www-data
+
+ENV COMPOSER_HOME /root/composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+LABEL Author="voocel"
+LABEL Version="2021.5"
+LABEL Description="PHP 7.4 开发环境镜像. "
+
+# docker build -t php-fpm-7.4 .
+# docker run --name php -d php-fpm-7.4
+# git clone -b v1.34.1 --depth 1 https://github.com/grpc/grpc && cd grpc && git submodule update --init && make grpc_php_plugin
+
+##!/usr/bin/env bash
+
+#protoDir="../proto"
+#outDir="../languages/php/lightweight"
+#protoc -I ${protoDir}/ ${protoDir}/*proto --go_out=plugins=grpc:${outDir}
+
+#protoc --proto_path=${protoDir} \
+#  --php_out=${outDir} \
+#  --grpc_out=${outDir} \
+#  --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin \
+#  ${protoDir}/*.proto

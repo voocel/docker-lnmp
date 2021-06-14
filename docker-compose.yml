@@ -1,4 +1,7 @@
 version: '3'
+# chmod 777 redis/redis.log
+# chmod 777 redis/data
+# chmod 777 mysql/data
 services:
   nginx:
     build: 
